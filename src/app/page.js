@@ -79,7 +79,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center">
-      <header className="w-full max-w-md flex justify-between items-center mb-8">
+      <header className="w-full max-w-2xl flex justify-between items-center mb-8">
         <div className="flex items-center">
           <svg
             className="w-6 h-6 mr-2"
