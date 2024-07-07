@@ -4,16 +4,12 @@ import { ArrowLeft, Twitter, Github } from "lucide-react";
 
 export default function HelpPage() {
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center">
-      <Link
-        href="/"
-        className="self-start flex items-center text-blue-500 mb-4"
-      >
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center justify-center">
+      <Link href="/" className="flex items-center text-blue-500 mb-4">
         <ArrowLeft size={24} className="mr-2" />
         Back to Converter
       </Link>
-
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full text-center">
         <h1 className="text-2xl font-bold mb-4">Meet Penny</h1>
         <p className="mb-4">
           Penny is a currency converter that can convert between various

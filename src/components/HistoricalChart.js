@@ -34,7 +34,10 @@ export default function HistoricalChart({ data, fromCurrency, toCurrency }) {
 
   const chartData = filterData(
     timeRanges.find((r) => r.label === selectedRange).days
-  );
+  ).map((d) => ({
+    ...d,
+    date: new Date(d.date).toISOString().split("T")[0], // Ensure date is formatted correctly
+  }));
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8">

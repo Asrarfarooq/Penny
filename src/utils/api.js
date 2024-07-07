@@ -29,33 +29,41 @@ export const fetchLatestRates = async (baseCurrency = "USD") => {
 export const fetchHistoricalData = async (baseCurrency, targetCurrency) => {
   try {
     const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 30);
 
-    const requests = [];
+    const formatDateString = (date) => {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, "0");
+      const dd = String(date.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const dateList = [];
     for (
       let d = new Date(startDate);
       d <= endDate;
       d.setDate(d.getDate() + 1)
     ) {
-      const dateStr = d.toISOString().split("T")[0];
-      requests.push(
-        axios.get(`${BASE_URL}/historical/${dateStr}.json`, {
-          params: {
-            app_id: OPEN_EXCHANGE_RATES_APP_ID,
-            base: "USD", // Open Exchange Rates free plan only supports USD as base
-            symbols: `${targetCurrency}`,
-          },
-        })
-      );
+      dateList.push(formatDateString(new Date(d)));
     }
 
+    const requests = dateList.map((dateStr) =>
+      axios.get(`${BASE_URL}/historical/${dateStr}.json`, {
+        params: {
+          app_id: OPEN_EXCHANGE_RATES_APP_ID,
+          base: "USD", // Open Exchange Rates free plan only supports USD as base
+          symbols: targetCurrency,
+        },
+      })
+    );
+
     const responses = await Promise.all(requests);
-    const historicalData = responses.map((response) => ({
-      date: response.data.date,
+    const historicalData = responses.map((response, index) => ({
+      date: dateList[index],
       rate: response.data.rates[targetCurrency],
     }));
 
-    // If base currency is not USD, we need to convert the rates
     if (baseCurrency !== "USD") {
       const latestRates = await fetchLatestRates();
       historicalData.forEach((data) => {

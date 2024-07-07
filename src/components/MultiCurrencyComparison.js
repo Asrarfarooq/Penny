@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { fetchLatestRates } from "../utils/api";
 
@@ -27,7 +28,7 @@ const MultiCurrencyComparison = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center justify-center">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
         <h1 className="text-2xl font-bold mb-4">Multi-Currency Comparison</h1>
         <div className="flex items-center mb-4">

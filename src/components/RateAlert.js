@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+"use client";
+import React, { useState, useEffect, useCallback } from "react";
 import { fetchLatestRates } from "../utils/api";
 
 const RateAlerts = () => {
@@ -7,6 +8,21 @@ const RateAlerts = () => {
   const [toCurrency, setToCurrency] = useState("EUR");
   const [targetRate, setTargetRate] = useState("");
   const [rates, setRates] = useState({});
+
+  const checkAlerts = useCallback(
+    (currentRates) => {
+      alerts.forEach((alert) => {
+        const currentRate =
+          currentRates[alert.toCurrency] / currentRates[alert.fromCurrency];
+        if (currentRate >= alert.targetRate) {
+          console.log(
+            `Alert: ${alert.fromCurrency}/${alert.toCurrency} has reached ${currentRate}`
+          );
+        }
+      });
+    },
+    [alerts]
+  );
 
   useEffect(() => {
     fetchLatestRates().then(setRates);
@@ -17,7 +33,7 @@ const RateAlerts = () => {
       });
     }, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, []);
+  }, [checkAlerts]);
 
   const addAlert = () => {
     if (fromCurrency && toCurrency && targetRate) {
@@ -29,20 +45,8 @@ const RateAlerts = () => {
     }
   };
 
-  const checkAlerts = (currentRates) => {
-    alerts.forEach((alert) => {
-      const currentRate =
-        currentRates[alert.toCurrency] / currentRates[alert.fromCurrency];
-      if (currentRate >= alert.targetRate) {
-        console.log(
-          `Alert: ${alert.fromCurrency}/${alert.toCurrency} has reached ${currentRate}`
-        );
-      }
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center justify-center">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
         <h1 className="text-2xl font-bold mb-4">Rate Alerts</h1>
         <div className="flex items-center mb-4">
