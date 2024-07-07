@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Add any necessary Next.js config options here
+  images: {
+    domains: ["abs.twimg.com", "avatars.githubusercontent.com"],
+  },
 };
 
 export default nextConfig;

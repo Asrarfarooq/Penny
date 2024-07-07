@@ -1,44 +1,59 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Twitter, Github } from "lucide-react";
 
 export default function HelpPage() {
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4">
-      <Link href="/" className="flex items-center text-blue-500 mb-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center">
+      <Link
+        href="/"
+        className="self-start flex items-center text-blue-500 mb-4"
+      >
         <ArrowLeft size={24} className="mr-2" />
         Back to Converter
       </Link>
 
-      <h1 className="text-2xl font-bold mb-4">Help & Information</h1>
-
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-2">How to Use Penny</h2>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-4">Meet Penny</h1>
         <p className="mb-4">
-          Penny is a simple and intuitive currency converter. Here is how to use
-          it:
+          Penny is a currency converter that can convert between various
+          currencies, including USD, EUR, GBP, and more.
         </p>
-        <ol className="list-decimal list-inside mb-4">
-          <li>Select your base currency from the first dropdown.</li>
-          <li>Enter the amount you want to convert.</li>
-          <li>Select the target currency from the second dropdown.</li>
-          <li>Click the Convert button to see the result.</li>
-        </ol>
-
-        <h2 className="text-xl font-bold mb-2">Features</h2>
+        <p className="mb-4">
+          I made Penny because I needed a simple, no-bloat currency converter
+          for my travels, and I wanted an application that focused solely on
+          currency conversion.
+        </p>
+        <h2 className="text-xl font-bold mb-2">Why Penny?</h2>
         <ul className="list-disc list-inside mb-4">
-          <li>Real-time currency conversion</li>
-          <li>Historical exchange rate data</li>
-          <li>Support for multiple currencies</li>
-          <li>Dark mode support</li>
+          <li>✅ Free to use with no advertisements</li>
+          <li>🛠 Supports offline mode (No wifi or cellular needed)</li>
+          <li>
+            🌎 Can be downloaded as an application for iOS, Android, and desktop
+          </li>
         </ul>
-
-        <h2 className="text-xl font-bold mb-2">About the Data</h2>
-        <p>
-          Penny uses exchange rate data from ExchangeRate-API. The rates are
-          updated regularly to ensure accuracy.
+        <div className="flex justify-center space-x-4 mt-6">
+          <a
+            href="https://twitter.com/asrarfarooq"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500"
+          >
+            <Twitter size={24} />
+          </a>
+          <a
+            href="https://github.com/asrarfarooq"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-900 dark:text-white"
+          >
+            <Github size={24} />
+          </a>
+        </div>
+        <p className="text-center mt-4">
+          Asrar Farooq
+          <br />
+          @asrarfarooq
         </p>
       </div>
     </div>
