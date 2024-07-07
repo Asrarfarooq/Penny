@@ -29,6 +29,23 @@ export default function Home() {
     setMounted(true);
     fetchLatestRates().then(setRates);
     fetchHistoricalData(fromCurrency, toCurrency).then(setHistoricalData);
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js").then(
+          function (registration) {
+            console.log(
+              "Service Worker registration successful with scope: ",
+              registration.scope
+            );
+          },
+          function (err) {
+            console.log("Service Worker registration failed: ", err);
+          }
+        );
+      });
+    }
   }, [fromCurrency, toCurrency]);
 
   const convert = () => {
@@ -42,7 +59,7 @@ export default function Home() {
     setResult(null);
   };
 
-  if (!mounted) return null; // Prevent rendering until client-side
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4">
@@ -80,6 +97,7 @@ export default function Home() {
           </Link>
         </div>
       </header>
+
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8 max-w-md mx-auto">
         <h2 className="text-xl font-bold mb-4">Currency Converter</h2>
         <div className="flex items-center mb-4">
