@@ -21,6 +21,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import AddToHomePrompt from "../components/AddToHomePrompt";
 
 export default function Home() {
   const [rates, setRates] = useState({});
@@ -316,6 +317,7 @@ export default function Home() {
           </ResponsiveContainer>
         </div>
       </main>
+      <AddToHomePrompt />
     </div>
   );
 }

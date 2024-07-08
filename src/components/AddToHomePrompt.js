@@ -21,11 +21,12 @@ const AddToHomePrompt = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 p-4 bg-blue-500 text-white">
       <p>Add this app to your home screen for a better experience!</p>
+      <p>Tap the share button and then Add to Home Screen</p>
       <button
         onClick={() => setShowPrompt(false)}
         className="mt-2 px-4 py-2 bg-white text-blue-500 rounded"
       >
-        Dismiss
+        Close
       </button>
     </div>
   );
