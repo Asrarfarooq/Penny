@@ -1,98 +1,98 @@
-import React, { useState } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { Sliders } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { ChevronDown } from "lucide-react";
 
-const timeRanges = [
-  { label: "1W", days: 7 },
-  { label: "1M", days: 30 },
-  { label: "1Y", days: 365 },
-  { label: "YTD", days: "ytd" },
-  { label: "Custom", days: "custom" },
-];
+const CurrencyConverter = ({
+  rates,
+  fromCurrency,
+  setFromCurrency,
+  toCurrency,
+  setToCurrency,
+  amount,
+  setAmount,
+  result,
+  convert,
+  clearConversion,
+}) => {
+  const currencyData = useMemo(() => {
+    return Object.keys(rates).reduce((acc, code) => {
+      acc[code] = {
+        name: new Intl.DisplayNames(["en"], { type: "currency" }).of(code),
+        flag: code
+          .slice(0, 2)
+          .toUpperCase()
+          .replace(/./g, (char) =>
+            String.fromCodePoint(char.charCodeAt(0) + 127397)
+          ),
+      };
+      return acc;
+    }, {});
+  }, [rates]);
 
-export default function HistoricalChart({ data, fromCurrency, toCurrency }) {
-  const [selectedRange, setSelectedRange] = useState("1M");
-  const [customDays, setCustomDays] = useState(30);
-
-  const filterData = (days) => {
-    if (days === "ytd") {
-      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-      return data.filter((item) => new Date(item.date) >= startOfYear);
-    } else if (days === "custom") {
-      return data.slice(-customDays);
-    } else {
-      return data.slice(-days);
-    }
-  };
-
-  const chartData = filterData(
-    timeRanges.find((r) => r.label === selectedRange).days
-  ).map((d) => ({
-    ...d,
-    date: new Date(d.date).toISOString().split("T")[0], // Ensure date is formatted correctly
-  }));
+  const CurrencyOption = ({ currency }) => (
+    <option value={currency}>
+      {currencyData[currency].flag} {currencyData[currency].name} ({currency})
+    </option>
+  );
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">
-          Historical Rates: {fromCurrency} to {toCurrency}
-        </h2>
-        <div className="flex items-center">
-          <Sliders className="w-5 h-5 mr-2" />
-          {timeRanges.map((range) => (
-            <button
-              key={range.label}
-              onClick={() => setSelectedRange(range.label)}
-              className={`px-2 py-1 rounded ${
-                selectedRange === range.label
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 dark:bg-gray-700"
-              }`}
-            >
-              {range.label}
-            </button>
+      <h2 className="text-xl font-bold mb-4">Currency Converter</h2>
+      <div className="flex items-center mb-4">
+        <select
+          value={fromCurrency}
+          onChange={(e) => setFromCurrency(e.target.value)}
+          className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 rounded-l-lg border-r border-gray-300 dark:border-gray-600"
+        >
+          {Object.keys(rates).map((currency) => (
+            <CurrencyOption key={currency} currency={currency} />
           ))}
-        </div>
+        </select>
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Enter amount"
+          className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 text-center"
+        />
+        <select
+          value={toCurrency}
+          onChange={(e) => setToCurrency(e.target.value)}
+          className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 rounded-r-lg border-l border-gray-300 dark:border-gray-600"
+        >
+          {Object.keys(rates).map((currency) => (
+            <CurrencyOption key={currency} currency={currency} />
+          ))}
+        </select>
       </div>
-      {selectedRange === "Custom" && (
-        <div className="mb-4">
-          <label htmlFor="customDays" className="mr-2">
-            Custom days:
-          </label>
-          <input
-            type="number"
-            id="customDays"
-            value={customDays}
-            onChange={(e) => setCustomDays(Number(e.target.value))}
-            className="w-20 p-1 border rounded"
-          />
+      <button
+        onClick={convert}
+        className="bg-blue-500 text-white p-2 rounded-lg w-full mb-2"
+      >
+        Convert
+      </button>
+      <button
+        onClick={clearConversion}
+        className="bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white p-2 rounded-lg w-full"
+      >
+        Clear
+      </button>
+      {result && (
+        <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-lg">
+          <h3 className="text-lg font-bold">Conversion Result</h3>
+          <p className="text-2xl mt-2">
+            {amount} {fromCurrency} = {result.toFixed(4)} {toCurrency}
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            1 {fromCurrency} ={" "}
+            {(rates[toCurrency] / rates[fromCurrency]).toFixed(4)} {toCurrency}
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Updated {new Date().toLocaleString()}
+          </p>
         </div>
       )}
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData}>
-          <XAxis
-            dataKey="date"
-            tickFormatter={(date) => new Date(date).toLocaleDateString()}
-          />
-          <YAxis />
-          <Tooltip
-            labelFormatter={(date) => new Date(date).toLocaleDateString()}
-            formatter={(value) => [
-              value.toFixed(4),
-              `${fromCurrency}/${toCurrency}`,
-            ]}
-          />
-          <Line type="monotone" dataKey="rate" stroke="#8884d8" />
-        </LineChart>
-      </ResponsiveContainer>
     </div>
   );
-}
+};
+
+export default CurrencyConverter;

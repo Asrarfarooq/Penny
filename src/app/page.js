@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { fetchLatestRates, fetchHistoricalData } from "../utils/api";
 import {
   Settings,
@@ -9,6 +9,7 @@ import {
   Sun,
   Moon,
   Sliders,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "../components/ThemeProvider";
@@ -38,7 +39,14 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     fetchLatestRates().then(setRates);
-    fetchHistoricalData(fromCurrency, toCurrency).then(setHistoricalData);
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchHistoricalData(fromCurrency, toCurrency, 365);
+      setHistoricalData(data);
+    };
+    fetchData();
   }, [fromCurrency, toCurrency]);
 
   const convert = () => {
@@ -51,6 +59,27 @@ export default function Home() {
     setAmount("");
     setResult(null);
   };
+
+  const currencyData = useMemo(() => {
+    return Object.keys(rates).reduce((acc, code) => {
+      acc[code] = {
+        name: new Intl.DisplayNames(["en"], { type: "currency" }).of(code),
+        flag: code
+          .slice(0, 2)
+          .toUpperCase()
+          .replace(/./g, (char) =>
+            String.fromCodePoint(char.charCodeAt(0) + 127397)
+          ),
+      };
+      return acc;
+    }, {});
+  }, [rates]);
+
+  const CurrencyOption = ({ currency }) => (
+    <option value={currency}>
+      {currencyData[currency]?.flag} {currencyData[currency]?.name} ({currency})
+    </option>
+  );
 
   const filterData = (days) => {
     if (days === "ytd") {
@@ -75,11 +104,20 @@ export default function Home() {
       : customDays
   );
 
+  const yDomain = useMemo(() => {
+    if (chartData.length === 0) return [0, 1];
+    const rates = chartData.map((d) => d.rate);
+    const min = Math.min(...rates);
+    const max = Math.max(...rates);
+    const padding = (max - min) * 0.1;
+    return [min - padding, max + padding];
+  }, [chartData]);
+
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 flex flex-col items-center">
-      <header className="w-full max-w-2xl flex justify-between items-center mb-8">
+      <header className="w-full max-w-3xl flex justify-between items-center mb-8">
         <div className="flex items-center">
           <svg
             className="w-6 h-6 mr-2"
@@ -111,39 +149,41 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="w-full max-w-md">
+      <main className="w-full max-w-2xl">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
           <h2 className="text-xl font-bold mb-4">Currency Converter</h2>
           <div className="flex items-center mb-4">
-            <select
-              value={fromCurrency}
-              onChange={(e) => setFromCurrency(e.target.value)}
-              className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 rounded-l-lg border-r border-gray-300 dark:border-gray-600"
-            >
-              {Object.keys(rates).map((currency) => (
-                <option key={currency} value={currency}>
-                  {currency}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-2/5 mr-2">
+              <select
+                value={fromCurrency}
+                onChange={(e) => setFromCurrency(e.target.value)}
+                className="w-full p-2 bg-gray-200 dark:bg-gray-700 rounded-l-lg appearance-none"
+              >
+                {Object.keys(rates).map((currency) => (
+                  <CurrencyOption key={currency} currency={currency} />
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+            </div>
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
-              className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 text-center"
+              className="w-1/5 p-2 bg-gray-200 dark:bg-gray-700 text-center"
             />
-            <select
-              value={toCurrency}
-              onChange={(e) => setToCurrency(e.target.value)}
-              className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 rounded-r-lg border-l border-gray-300 dark:border-gray-600"
-            >
-              {Object.keys(rates).map((currency) => (
-                <option key={currency} value={currency}>
-                  {currency}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-2/5">
+              <select
+                value={toCurrency}
+                onChange={(e) => setToCurrency(e.target.value)}
+                className="w-full p-2 bg-gray-200 dark:bg-gray-700 rounded-r-lg appearance-none"
+              >
+                {Object.keys(rates).map((currency) => (
+                  <CurrencyOption key={currency} currency={currency} />
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+            </div>
           </div>
           <button
             onClick={convert}
@@ -187,10 +227,10 @@ export default function Home() {
             </button>
           </div>
           {showFilters && (
-            <div className="mb-4 flex items-center">
+            <div className="mb-4 flex items-center flex-wrap">
               <button
                 onClick={() => setSelectedRange("1W")}
-                className={`px-2 py-1 rounded mr-2 ${
+                className={`px-2 py-1 rounded mr-2 mb-2 ${
                   selectedRange === "1W"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 dark:bg-gray-700"
@@ -200,7 +240,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setSelectedRange("1M")}
-                className={`px-2 py-1 rounded mr-2 ${
+                className={`px-2 py-1 rounded mr-2 mb-2 ${
                   selectedRange === "1M"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 dark:bg-gray-700"
@@ -210,7 +250,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setSelectedRange("1Y")}
-                className={`px-2 py-1 rounded mr-2 ${
+                className={`px-2 py-1 rounded mr-2 mb-2 ${
                   selectedRange === "1Y"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 dark:bg-gray-700"
@@ -220,7 +260,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setSelectedRange("custom")}
-                className={`px-2 py-1 rounded mr-2 ${
+                className={`px-2 py-1 rounded mr-2 mb-2 ${
                   selectedRange === "custom"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 dark:bg-gray-700"
@@ -238,21 +278,40 @@ export default function Home() {
               )}
             </div>
           )}
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
               <XAxis
                 dataKey="date"
-                tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                tickFormatter={(date) =>
+                  new Date(date).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }
+                tick={{ fill: "#888", fontSize: 12 }}
               />
-              <YAxis />
+              <YAxis
+                domain={yDomain}
+                tick={{ fill: "#888", fontSize: 12 }}
+                tickFormatter={(value) => value.toFixed(6)}
+              />
               <Tooltip
                 labelFormatter={(date) => new Date(date).toLocaleDateString()}
                 formatter={(value) => [
-                  value.toFixed(4),
+                  value.toFixed(6),
                   `${fromCurrency}/${toCurrency}`,
                 ]}
               />
-              <Line type="monotone" dataKey="rate" stroke="#8884d8" />
+              <Line
+                type="monotone"
+                dataKey="rate"
+                stroke="#8884d8"
+                dot={false}
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

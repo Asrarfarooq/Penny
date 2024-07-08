@@ -1,74 +1,92 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 
-const CurrencyConverter = ({ rates }) => {
-  const [fromCurrency, setFromCurrency] = useState("USD");
-  const [toCurrency, setToCurrency] = useState("EUR");
-  const [amount, setAmount] = useState(1);
-  const [result, setResult] = useState(null);
+const CurrencyConverter = ({
+  rates,
+  fromCurrency,
+  setFromCurrency,
+  toCurrency,
+  setToCurrency,
+  amount,
+  setAmount,
+  result,
+  convert,
+  clearConversion,
+}) => {
+  const currencyData = useMemo(() => {
+    return Object.keys(rates).reduce((acc, code) => {
+      acc[code] = {
+        name: new Intl.DisplayNames(["en"], { type: "currency" }).of(code),
+        flag: code
+          .slice(0, 2)
+          .toUpperCase()
+          .replace(/./g, (char) =>
+            String.fromCodePoint(char.charCodeAt(0) + 127397)
+          ),
+      };
+      return acc;
+    }, {});
+  }, [rates]);
 
-  const convert = () => {
-    if (!rates[fromCurrency] || !rates[toCurrency]) return;
-    const rate = rates[toCurrency] / rates[fromCurrency];
-    setResult(amount * rate);
-  };
+  const CurrencyOption = ({ currency }) => (
+    <option value={currency}>
+      {currencyData[currency].flag} {currencyData[currency].name} ({currency})
+    </option>
+  );
 
   return (
-    <div className="bg-gray-800 dark:bg-white p-6 rounded-lg shadow-lg mb-8">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
       <h2 className="text-xl font-bold mb-4">Currency Converter</h2>
       <div className="flex items-center mb-4">
-        <div className="relative w-1/3 mr-2">
-          <select
-            value={fromCurrency}
-            onChange={(e) => setFromCurrency(e.target.value)}
-            className="w-full p-2 bg-gray-700 dark:bg-gray-200 rounded appearance-none"
-          >
-            {Object.keys(rates).map((currency) => (
-              <option key={currency} value={currency}>
-                {currency}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2" />
-        </div>
+        <select
+          value={fromCurrency}
+          onChange={(e) => setFromCurrency(e.target.value)}
+          className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 rounded-l-lg border-r border-gray-300 dark:border-gray-600"
+        >
+          {Object.keys(rates).map((currency) => (
+            <CurrencyOption key={currency} currency={currency} />
+          ))}
+        </select>
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="w-1/3 p-2 bg-gray-700 dark:bg-gray-200 rounded mr-2"
+          placeholder="Enter amount"
+          className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 text-center"
         />
-        <div className="relative w-1/3">
-          <select
-            value={toCurrency}
-            onChange={(e) => setToCurrency(e.target.value)}
-            className="w-full p-2 bg-gray-700 dark:bg-gray-200 rounded appearance-none"
-          >
-            {Object.keys(rates).map((currency) => (
-              <option key={currency} value={currency}>
-                {currency}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2" />
-        </div>
+        <select
+          value={toCurrency}
+          onChange={(e) => setToCurrency(e.target.value)}
+          className="w-1/3 p-2 bg-gray-200 dark:bg-gray-700 rounded-r-lg border-l border-gray-300 dark:border-gray-600"
+        >
+          {Object.keys(rates).map((currency) => (
+            <CurrencyOption key={currency} currency={currency} />
+          ))}
+        </select>
       </div>
       <button
         onClick={convert}
-        className="bg-blue-500 text-white p-2 rounded w-full"
+        className="bg-blue-500 text-white p-2 rounded-lg w-full mb-2"
       >
         Convert
       </button>
+      <button
+        onClick={clearConversion}
+        className="bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white p-2 rounded-lg w-full"
+      >
+        Clear
+      </button>
       {result && (
-        <div className="bg-gray-700 dark:bg-gray-200 p-4 rounded mt-4">
+        <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-lg">
           <h3 className="text-lg font-bold">Conversion Result</h3>
-          <p className="mt-2">
+          <p className="text-2xl mt-2">
             {amount} {fromCurrency} = {result.toFixed(4)} {toCurrency}
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             1 {fromCurrency} ={" "}
             {(rates[toCurrency] / rates[fromCurrency]).toFixed(4)} {toCurrency}
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Updated {new Date().toLocaleString()}
           </p>
         </div>

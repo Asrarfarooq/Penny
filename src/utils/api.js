@@ -26,11 +26,15 @@ export const fetchLatestRates = async (baseCurrency = "USD") => {
   }
 };
 
-export const fetchHistoricalData = async (baseCurrency, targetCurrency) => {
+export const fetchHistoricalData = async (
+  baseCurrency,
+  targetCurrency,
+  days = 365
+) => {
   try {
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 30);
+    startDate.setDate(endDate.getDate() - days);
 
     const formatDateString = (date) => {
       const yyyy = date.getFullYear();
@@ -48,21 +52,37 @@ export const fetchHistoricalData = async (baseCurrency, targetCurrency) => {
       dateList.push(formatDateString(new Date(d)));
     }
 
-    const requests = dateList.map((dateStr) =>
-      axios.get(`${BASE_URL}/historical/${dateStr}.json`, {
-        params: {
-          app_id: OPEN_EXCHANGE_RATES_APP_ID,
-          base: "USD", // Open Exchange Rates free plan only supports USD as base
-          symbols: targetCurrency,
-        },
-      })
-    );
+    // To avoid hitting API rate limits, we'll fetch data in batches
+    const batchSize = 30;
+    const batches = [];
+    for (let i = 0; i < dateList.length; i += batchSize) {
+      batches.push(dateList.slice(i, i + batchSize));
+    }
 
-    const responses = await Promise.all(requests);
-    const historicalData = responses.map((response, index) => ({
-      date: dateList[index],
-      rate: response.data.rates[targetCurrency],
-    }));
+    let historicalData = [];
+
+    for (const batch of batches) {
+      const requests = batch.map((dateStr) =>
+        axios.get(`${BASE_URL}/historical/${dateStr}.json`, {
+          params: {
+            app_id: OPEN_EXCHANGE_RATES_APP_ID,
+            base: "USD", // Open Exchange Rates free plan only supports USD as base
+            symbols: targetCurrency,
+          },
+        })
+      );
+
+      const responses = await Promise.all(requests);
+      const batchData = responses.map((response, index) => ({
+        date: batch[index],
+        rate: response.data.rates[targetCurrency],
+      }));
+
+      historicalData = [...historicalData, ...batchData];
+
+      // Add a small delay between batches to avoid rate limiting
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
 
     if (baseCurrency !== "USD") {
       const latestRates = await fetchLatestRates();
